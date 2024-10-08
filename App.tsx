@@ -1,20 +1,38 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import WelcomeScreen from './screens/WelcomeScreen';
+import MenuScreen from './screens/MenuScreen';
+import AddDishScreen from './screens/AddDishScreen';
 
-export default function App() {
+
+type Dish = {
+  id: string;
+  name: string;
+  description: string;
+  course: string;
+  price: number;
+};
+
+
+const Stack = createStackNavigator();
+
+const App: React.FC = () => {
+  
+  const [menu, setMenu] = useState<Dish[]>([]); 
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
+        <Stack.Screen name="Menu">
+          {props => <MenuScreen {...props} menu={menu} setMenu={setMenu} />}
+        </Stack.Screen>
+        <Stack.Screen name="AddDish">
+          {props => <AddDishScreen {...props} route={{ params: { menu, setMenu } }} />}
+        </Stack.Screen>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;
