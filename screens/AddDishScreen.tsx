@@ -1,11 +1,19 @@
-import React, { useState } from 'react'; 
-import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  Alert,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { Dish } from '../types'; 
-import { COLORS, FONTS } from '../theme'; 
+import { Dish } from '../types';
+import { COLORS, FONTS } from '../theme';
 
 type AddDishScreenProps = {
-  navigation: any; 
+  navigation: any;
   route: {
     params: {
       menu: Dish[];
@@ -20,7 +28,7 @@ const AddDishScreen: React.FC<AddDishScreenProps> = ({ navigation, route }) => {
   const [newDishName, setNewDishName] = useState('');
   const [newDishDescription, setNewDishDescription] = useState('');
   const [newDishPrice, setNewDishPrice] = useState('');
-  const [newDishCourse, setNewDishCourse] = useState('Starter'); 
+  const [newDishCourse, setNewDishCourse] = useState('Starter');
   const [openCourseDropdown, setOpenCourseDropdown] = useState(false);
   const [courseOptions, setCourseOptions] = useState([
     { label: 'Starter', value: 'Starter' },
@@ -29,48 +37,38 @@ const AddDishScreen: React.FC<AddDishScreenProps> = ({ navigation, route }) => {
   ]);
 
   const addDish = () => {
-    // Validation checks
     const nameIsValid = /^[A-Za-z\s]+$/.test(newDishName);
     const descriptionIsValid = /^[A-Za-z\s]+$/.test(newDishDescription);
     const priceIsValid = /^\d+(\.\d{1,2})?$/.test(newDishPrice);
     const priceValue = parseFloat(newDishPrice);
 
-    if (!nameIsValid) {
-      Alert.alert('Invalid Input', 'Dish name can only contain letters and spaces.');
-      return;
-    }
-    if (!descriptionIsValid) {
-      Alert.alert('Invalid Input', 'Dish description can only contain letters and spaces.');
-      return;
-    }
-    if (!priceIsValid) {
-      Alert.alert('Invalid Input', 'Price must be a valid number.');
-      return;
-    }
-    if (priceValue < 0 || priceValue > 1000) {
-      Alert.alert('Out of Range', 'Price must be between R0 and R1000.');
-      return;
-    }
-    if (!newDishCourse) {
-      Alert.alert('Select Course', 'Please select a course for the dish.');
+    if (!nameIsValid || !descriptionIsValid || !priceIsValid || priceValue <= 0) {
+      Alert.alert('Invalid Input', 'Please ensure all fields are filled correctly.');
       return;
     }
 
     const newDish: Dish = {
-      id: (menu.length + 1).toString(),
+      id: `${Date.now()}`,
       name: newDishName,
       description: newDishDescription,
       course: newDishCourse,
       price: priceValue,
     };
 
-    setMenu([...menu, newDish]); 
-    navigation.navigate('Menu'); 
+    setMenu([...menu, newDish]);
+    setNewDishName('');
+    setNewDishDescription('');
+    setNewDishPrice('');
+    Alert.alert('Success', 'Dish added to the menu.');
+  };
+
+  const removeDish = (id: string) => {
+    setMenu(menu.filter(dish => dish.id !== id));
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Add New Dish</Text>
+      <Text style={styles.header}>Manage Menu</Text>
 
       <TextInput
         placeholder="Dish Name"
@@ -91,7 +89,6 @@ const AddDishScreen: React.FC<AddDishScreenProps> = ({ navigation, route }) => {
         keyboardType="numeric"
         style={styles.input}
       />
-      
       <DropDownPicker
         open={openCourseDropdown}
         value={newDishCourse}
@@ -99,12 +96,36 @@ const AddDishScreen: React.FC<AddDishScreenProps> = ({ navigation, route }) => {
         setOpen={setOpenCourseDropdown}
         setValue={setNewDishCourse}
         containerStyle={{ height: 40 }}
-        placeholder="Select Course"
-        dropDownContainerStyle={styles.dropdown}
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
       />
-
-      <TouchableOpacity style={styles.buttonContainer} onPress={addDish}>
+      <TouchableOpacity style={styles.addButton} onPress={addDish}>
         <Text style={styles.addButtonText}>Add Dish</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.subHeader}>Current Menu</Text>
+      <FlatList
+        data={menu}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.dishItem}>
+            <Text style={styles.dishText}>
+              {item.name} - R{item.price.toFixed(2)} ({item.course})
+            </Text>
+            <TouchableOpacity
+              onPress={() => removeDish(item.id)}
+              style={styles.removeButton}
+            >
+              <Text style={styles.removeButtonText}>Remove</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      />
+      <TouchableOpacity
+        style={styles.doneButton}
+        onPress={() => navigation.navigate('Menu')}
+      >
+        <Text style={styles.doneButtonText}>Done</Text>
       </TouchableOpacity>
     </View>
   );
@@ -114,7 +135,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: COLORS.tan, 
+    backgroundColor: COLORS.tan,
   },
   header: {
     fontSize: 28,
@@ -125,25 +146,67 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    borderColor: COLORS.grey,
     borderWidth: 1,
     marginVertical: 10,
     paddingHorizontal: 10,
-    backgroundColor: '#f0f0f0', 
+    borderRadius: 5,
+    backgroundColor: 'white',
   },
   dropdown: {
-    backgroundColor: '#f0f0f0', 
-    marginBottom: 20,
+    backgroundColor: 'white',
+    borderColor: COLORS.grey,
   },
-  buttonContainer: {
+  dropdownContainer: {
+    backgroundColor: COLORS.white,
+  },
+  addButton: {
     backgroundColor: COLORS.accent,
-    padding: 10, 
+    padding: 10,
     borderRadius: 5,
-    alignItems: 'center', 
-    marginTop: 20, 
+    alignItems: 'center',
+    marginVertical: 10,
   },
   addButtonText: {
-    color: 'white',
+    color: COLORS.white,
+    fontWeight: 'bold',
+  },
+  subHeader: {
+    fontSize: 20,
+    fontFamily: FONTS.main,
+    color: COLORS.darkTan,
+    marginVertical: 10,
+  },
+  dishItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    backgroundColor: COLORS.white,
+    borderRadius: 5,
+    marginVertical: 5,
+  },
+  dishText: {
+    fontSize: 16,
+    color: COLORS.black,
+  },
+  removeButton: {
+    backgroundColor: COLORS.tan,
+    padding: 5,
+    borderRadius: 5,
+  },
+  removeButtonText: {
+    color: COLORS.white,
+    fontWeight: 'bold',
+  },
+  doneButton: {
+    backgroundColor: COLORS.accent,
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  doneButtonText: {
+    color: COLORS.white,
     fontWeight: 'bold',
   },
 });
