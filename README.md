@@ -19,3 +19,29 @@ Dish: Represents individual dishes in the menu, including attributes such as nam
 Types: TypeScript is used for type definitions to ensure type safety across the application. This includes defining the Dish type and navigation props.
 
 Styling: The application employs a consistent theme using color and font styles defined in a separate theme file, promoting a cohesive look and feel.
+
+-Part 3- Added Remove button
+<Text style={styles.subHeader}>Current Menu</Text>
+
+<FlatList
+  data={menu}
+  keyExtractor={item => item.id}
+  renderItem={({ item }) => (
+    <View style={styles.dishItem}>
+      <Text style={styles.dishText}>
+        {item.name} - R{item.price.toFixed(2)} ({item.course})
+      </Text>
+      <TouchableOpacity
+        onPress={() => removeDish(item.id)}
+        style={styles.removeButton}
+      >
+        <Text style={styles.removeButtonText}>Remove</Text>
+      </TouchableOpacity>
+    </View>
+  )}
+/>
+
+The FlatList component is responsible for displaying all the dishes in the menu array.
+For each dish, it shows the dish name, price, and course type.
+Each dish also has a "Remove" button that calls the removeDish function, passing the id of the item to be removed.
+This setup ensures that all the dishes are displayed properly, and allows the user to remove any dish they no longer want.
